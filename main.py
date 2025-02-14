@@ -3,11 +3,10 @@ import random
 
 GAME_WIDTH = 800
 GAME_HEIGHT = 600
-INITIAL_SPEED = 100  # Slower initial speed
+INITIAL_SPEED = 100
 SPACE_SIZE = 50
 BODY_PARTS = 3
 SNAKE_COLOR = "#00FF00"
-#FOOD_COLOR = "#FF0000"
 BACKGROUND_COLOR = "#000000"
 
 
@@ -16,18 +15,24 @@ class GameSnake:
         self.body_size = BODY_PARTS
         self.coordinates = []
         self.squares = []
+        self.color = SNAKE_COLOR
 
         for i in range(0, BODY_PARTS):
             self.coordinates.append([0, 0])
 
         for x, y in self.coordinates:
-            square = canvas.create_rectangle(x, y, x + SPACE_SIZE, y + SPACE_SIZE, fill=SNAKE_COLOR, tag="snake")
+            square = canvas.create_rectangle(x, y, x + SPACE_SIZE, y + SPACE_SIZE, fill=self.color, tag="snake")
             self.squares.append(square)
+
+    def update_color(self, new_color): # Update the snake's color
+        self.color = new_color
+        for square in self.squares:
+            canvas.itemconfig(square, fill=new_color)
 
 
 class Food:
     def __init__(self):
-        # Generate a random color for the food
+        # Generates a random color for the food
         self.color = "#{:02x}{:02x}{:02x}".format(random.randint(0, 255), random.randint(0, 255),
                                                   random.randint(0, 255))
 
@@ -53,18 +58,22 @@ def next_turn():
         x += SPACE_SIZE
 
     snake.coordinates.insert(0, (x, y))
-    square = canvas.create_rectangle(x, y, x + SPACE_SIZE, y + SPACE_SIZE, fill=SNAKE_COLOR, tag="snake")
+    square = canvas.create_rectangle(x, y, x + SPACE_SIZE, y + SPACE_SIZE, fill=snake.color, tag="snake")
     snake.squares.insert(0, square)
 
     if x == food.coordinates[0] and y == food.coordinates[1]:
         score += 1
         label.config(text="Score: {}".format(score))
         canvas.delete("food")
+
+
+        snake.update_color(food.color)
+
         food = Food()
 
-        # Increase speed every 5 points
+
         if score % 5 == 0:
-            SPEED = max(50, SPEED - 5)  # Ensure speed doesn't go below 50
+            SPEED = max(50, SPEED - 5)
     else:
         del snake.coordinates[-1]
         canvas.delete(snake.squares[-1])
@@ -103,11 +112,11 @@ def check_collisions(snake):
 
 
 def game_over():
-    # Display "GAME OVER" text
+
     canvas.create_text(canvas.winfo_width() / 2, canvas.winfo_height() / 2,
                        font=('Arial', 70), text="GAME OVER", fill="red", tag="gameover")
 
-    # Add restart button to the window (not the canvas)
+
     restart_button = Button(window, text="Restart", font=('Arial', 20), command=restart_game)
     restart_button.place(relx=0.5, rely=0.9, anchor=CENTER)  # Center the button
 
@@ -115,27 +124,27 @@ def game_over():
 def restart_game():
     global score, direction, snake, food, SPEED
 
-    # Reset game state
+
     score = 0
     direction = "down"
     SPEED = INITIAL_SPEED
     label.config(text="Score: {}".format(score))
 
-    # Clear canvas (only snake, food, and game over elements)
+
     canvas.delete("snake")
     canvas.delete("food")
     canvas.delete("gameover")
 
-    # Remove restart button
+
     for widget in window.winfo_children():
         if isinstance(widget, Button):
             widget.destroy()
 
-    # Reinitialize snake and food
+
     snake = GameSnake()
     food = Food()
 
-    # Start the game again
+
     window.after(SPEED, next_turn)
 
 
@@ -145,7 +154,7 @@ window.resizable(False, False)
 
 score = 0
 direction = "down"
-SPEED = INITIAL_SPEED  # Set initial speed
+SPEED = INITIAL_SPEED
 label = Label(window, text="Score: {}".format(score), font=("Arial", 20))
 label.pack()
 
